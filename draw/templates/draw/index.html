@@ -31,31 +31,98 @@
     var url = window.location.href;
 
     var socket = new WebSocket('wss://p3-websockets-letrangg-reiichannn.codeanyapp.com/ws/draw');
+    //var color = ['#4287f5', '#f28ad3', '#3aa6a2', '#947931', '#21246b', '#fc7a0f','#758f15','#d61313'];
+    //var rand = Math.floor((Math.random() * 3420) % colors.length);
+    var small = false;
         
-    var myPath = new paper.Path();
-    // triggered when receiving a message from the server
-    socket.onmessage = function(receivedMessage) {
-      console.log(receivedMessage);
-      var point = jQuery.parseJSON(JSON.stringify(receivedMessage));
-      myPath.add(point);
+    var allPath = new paper.Path();
+    var myPath;
+    var listPath = {}; //dictionary of paths with their corresponding color
+    //var numPath = 0; //number of paths
+    //get random color assigned to each session
+    function getRandomColor() {
+      var options = '0123456789ABCDEF';
+      var color = '#';
+      for (var i = 0; i < 6; i++) {
+        color += options[Math.floor(Math.random() * 16)];
+      }
+      return color;
     }
     
+    //var sessionID = getRandomColor(); 
+    
+    //limit to three browsers
+    for(var i = 0; i < 3) {
+      listPath[i] = getRandomColor();
+      console.log(listPath[i]);
+    }
+    
+    //var msg = ["id",sessionID];
     // use when sending a message to the server
     // to be broadcasted to all clients, please add a delay
 
     // notify console if socket closes unexpectedly
     socket.onclose = function(e) {
-        console.error('Chat socket closed unexpectedly');
+       console.error('Chat socket closed unexpectedly');
     };
-    
-    myPath.strokeColor = 'black';
-    tool.onMouseMove = function(event) {
+  
+    if (url=="https://p3-websockets-letrangg-reiichannn.codeanyapp.com/draw/?size-small") {
+       
+    }
+
+  
+
+  
+    //myPath.strokeColor = sessionID;
+
+    myPath = new paper.Path();
+    tool.onMouseDown = function(event) {
+      myPath.strokeColor = sessionID;
+    }
+
+    tool.onMouseDrag = function(event) {
       myPath.add(event.point);
-      socket.send(event.point);
+      var pointData = JSON.stringify(event.point);
+      var colorData = JSON.stringify(myPath.strokeColor);
+      socket.send(colorData.substring(0,colorData.length - 1) + "," + pointData.substring(1, pointData.length));
+      console.log(colorData.substring(0,colorData.length - 1) + "," + pointData.substring(1, pointData.length -1) + "," + msg + "]");
+    }
+
+    tool.onMouseUp = function(event) {
+      myPath = new paper.Path();
+      allPath = new paper.Path();
+    }
+    
+   
+    //tool.onMouseMove = function(event) {
+    //  myPath.add(event.point);
+    //  var pointData = JSON.stringify(event.point);
+    //  var colorData = JSON.stringify(myPath.strokeColor);
+    //  var sessionData = JSON.stringify(msg);
+      //socket.send(JSON.stringify(event.point));
+      //socket.send(JSON.stringify(myPath.strokeColor));
+     // console.log(colorData.substring(0,colorData.length - 1) + "," + pointData.substring(1, pointData.length -1) + "," + msg + "]");
+     // console.log(msg);
+      //console.log(pointData);
+     // socket.send(colorData.substring(0,colorData.length - 1) + "," + pointData.substring(1, pointData.length));
       //myPath.add(point);
       //console.log(event.point.x);
       //console.log(event.point);
+    //}
+    
+        // triggered when receiving a message from the server
+    socket.onmessage = function(receivedMessage) {
+      //console.log(receivedMessage);
+      var data = jQuery.parseJSON(receivedMessage.data);
+      var color = new paper.Color(data[1], data[2], data[3]);
+      var point = new paper.Point(data[5],data[6]);
+      //allPath = new paper.Path();
+      allPath.strokeColor = color;
+      allPath.add(point);
+      //console.log(data[1]);
+      //console.log(point.toString());
     }
+    
     
 </script>
 </html>
